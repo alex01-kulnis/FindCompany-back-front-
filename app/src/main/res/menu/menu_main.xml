@@ -1,0 +1,34 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools ="http://schemas.android.com/tools"
+    tools:context=".Activities.HomeActivity">
+    <item
+        android:id="@+id/action_item"
+        android:orderInCategory="100"
+        android:title="@string/app_name"
+    />
+    <item
+        android:id="@+id/action_item1"
+        android:orderInCategory="100"
+        android:title="@string/action_item1"
+    />
+    <item
+        android:id="@+id/action_item2"
+        android:orderInCategory="100"
+        android:title="@string/action_item2"
+    />
+    <item
+        android:id="@+id/action_item3"
+        android:orderInCategory="100"
+        android:title="@string/action_item3"
+    />
+    <item
+        android:id="@+id/action_item4"
+        android:orderInCategory="100"
+        android:title="Заметки"
+        />
+    <item
+        android:id="@+id/action_item5"
+        android:orderInCategory="100"
+        android:title="Выйти"
+        />
+</menu>
