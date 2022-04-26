@@ -31,4 +31,9 @@
         android:orderInCategory="100"
         android:title="Выйти"
         />
+    <item
+        android:id="@+id/action_item6"
+        android:orderInCategory="100"
+        android:title="График"
+        />
 </menu>

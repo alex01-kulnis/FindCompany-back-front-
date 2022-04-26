@@ -276,6 +276,12 @@ public class DBHelper extends SQLiteOpenHelper {
                 + "HistoryVisiting where id_user = ?" + ";", new String[] {id});
     }
 
+    public Cursor getStatistic(SQLiteDatabase db) {
+        return db.rawQuery("SELECT id_event, name_event, COUNT(*) AS amount from "
+                + "HistoryVisiting GROUP BY name_event ORDER BY id_event ASC" +  ";", new String[] {});
+    }
+
+
     //provider
     public Cursor getUsers(SQLiteDatabase db) {
         return db.rawQuery("select id_user, firstname, secondname    from " + "Users" + ";", null);

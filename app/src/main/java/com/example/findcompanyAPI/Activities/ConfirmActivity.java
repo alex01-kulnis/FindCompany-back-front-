@@ -140,6 +140,11 @@ public class ConfirmActivity extends AppCompatActivity {
             intent.putExtra("id", id_U);
             startActivity(intent);
         }
+        else if (id == R.id.action_item6) {
+            Intent intent = new Intent(getApplicationContext(), DiagramActivity.class);
+            intent.putExtra("id", id_U);
+            startActivity(intent);
+        }
 
         return super.onOptionsItemSelected(item);
     }
