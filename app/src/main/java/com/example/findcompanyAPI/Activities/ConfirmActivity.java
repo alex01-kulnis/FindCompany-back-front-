@@ -193,7 +193,7 @@ public class ConfirmActivity extends AppCompatActivity {
             itemPlace.setText("Место: " + ExpensesList.get(position).getPlace_event());
             itemDate.setText("Время и дата: " + ExpensesList.get(position).getDataAndtime_event());
             itemPar.setText("Кол-во участников: " + ExpensesList.get(position).getMaxParticipants_event());
-            itemSec.setText("Фамилия кандидата: " + ExpensesList.get(position).getSurname_user());
+            itemSec.setText("Фамилия кандидата: " + ExpensesList.get(position).getSurname());
 
             Button buttonConf= (Button)view.findViewById(R.id.buttonConfirm);
             Button buttonCanc= (Button)view.findViewById(R.id.buttonCancel);

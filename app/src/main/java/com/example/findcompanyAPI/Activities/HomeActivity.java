@@ -1,5 +1,7 @@
 package com.example.findcompanyAPI.Activities;
 
+import static com.example.findcompanyAPI.Config.baseRetrofitUrl;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
@@ -19,11 +21,19 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.Event;
 import com.example.findcompanyAPI.R;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -50,7 +60,7 @@ public class HomeActivity extends AppCompatActivity {
         //getSupportActionBar().hide();
 
         Bundle arguments = getIntent().getExtras();
-        id_U = ((Integer) arguments.get("id"));
+//        id_U = ((Integer) arguments.get("id"));
         Log.d("myId", String.valueOf(id_U));
 
         binding();
@@ -82,31 +92,31 @@ public class HomeActivity extends AppCompatActivity {
                     setEvents();
                     return;
                 }
-                expensesList.clear();
-                Cursor cursor = dbHelper.getParticularEvents(search.getText().toString());
-
-                if (cursor.getCount() == 0) {
-                    expensesStr = new String[]{" "};
-                    return;
-                }
-                expensesStr = new String[cursor.getCount()];
-                int i = 0;
-
-                while (cursor.moveToNext()) {
-                    Event expenses = new Event(
-                            cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
-                            cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
-                            cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
-                            cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
-                    );
-
-                    expensesList.add(i, expenses);
-                    expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getName_event()
-                            + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
-                }
+//                expensesList.clear();
+//                Cursor cursor = dbHelper.getParticularEvents(search.getText().toString());
+//
+//                if (cursor.getCount() == 0) {
+//                    expensesStr = new String[]{" "};
+//                    return;
+//                }
+//                expensesStr = new String[cursor.getCount()];
+//                int i = 0;
+//
+//                while (cursor.moveToNext()) {
+//                    Event expenses = new Event(
+//                            cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
+//                            cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
+//                            cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
+//                            cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
+//                            cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
+//                            cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
+//                            cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
+//                    );
+//
+//                    expensesList.add(i, expenses);
+//                    expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getName_event()
+//                            + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
+//                }
                 customListAdapter.notifyDataSetChanged();
             }
         });
@@ -160,29 +170,78 @@ public class HomeActivity extends AppCompatActivity {
     private void setEvents() {
         expensesList.clear();
         Cursor cursor = dbHelper.getEvents(db);
+        Log.d("22", "String.valueOf(events)");
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseRetrofitUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
-        if (cursor.getCount() == 0) {
-            expensesStr = new String[]{" "};
-            return;
-        }
-        expensesStr = new String[cursor.getCount()];
-        int i = 0;
+        ApiServices apiService = retrofit.create(ApiServices.class);
 
-        while (cursor.moveToNext()) {
-            Event expenses = new Event(
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
-            );
+        Call<List<Event>> call = apiService.getEvents();
 
-            expensesList.add(i, expenses);
-            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getName_event()
-                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
-        }
+        call.enqueue(new Callback<List<Event>>() {
+            @Override
+            public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
+                if (!response.isSuccessful()){
+                    Log.d("Code", String.valueOf(response.code()));
+                    return;
+                }
+
+                List<Event> events = response.body();
+                Log.d("eve", String.valueOf(events));
+
+//                int i = 0;
+//                while(events.size() < i){
+//                    expensesList.add(i, (Event) events);
+//                    i++;
+//                }
+
+
+                for (Event event :events){
+                    Event result = new Event(
+                            event.getId_event(),
+                            event.getId_creator(),
+                            event.getId_user(),
+                            event.getName_event(),
+                            event.getPlace_event(),
+                            event.getDataAndtime_event(),
+                            event.getMaxParticipants_event()
+                    );
+                    int i = 0;
+                    expensesList.add( i,result);
+                    Log.d("id",event.getName_event());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Event>> call, Throwable t) {
+                Log.d("gg","11");
+            }
+        });
+
+//        if (cursor.getCount() == 0) {
+//            expensesStr = new String[]{" "};
+//            return;
+//        }
+//        expensesStr = new String[cursor.getCount()];
+//        int i = 0;
+
+//        while (cursor.moveToNext()) {
+//            Event expenses = new Event(
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
+//            );
+//
+//            expensesList.add(i, expenses);
+//            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getName_event()
+//                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
+//        }
         customListAdapter.notifyDataSetChanged();
     }
 

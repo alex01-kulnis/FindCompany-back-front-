@@ -31,24 +31,26 @@ public class LoginActivity extends AppCompatActivity {
         auth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String user = login.getText().toString();
-                String pass = password.getText().toString();
-
-                if (user.equals("") || pass.equals("") ){
-                    Toast.makeText(LoginActivity.this,"Заполните все поля", Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    Boolean checkuserpass = DB.CheckPassword(user,pass);
-                    if (checkuserpass == true){
-                        Toast.makeText(LoginActivity.this,"Вход успешен", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(getApplicationContext(),HomeActivity.class);
-                        int id = DB.CurrentUser(user);
-                        intent.putExtra("id", id);
-                        startActivity(intent);
-                    }else {
-                        Toast.makeText(LoginActivity.this,"Логин или пароль введены неверно, измените!", Toast.LENGTH_SHORT).show();
-                    }
-                }
+//                String user = login.getText().toString();
+//                String pass = password.getText().toString();
+//
+//                if (user.equals("") || pass.equals("") ){
+//                    Toast.makeText(LoginActivity.this,"Заполните все поля", Toast.LENGTH_SHORT).show();
+//                }
+//                else {
+//                    Boolean checkuserpass = DB.CheckPassword(user,pass);
+//                    if (checkuserpass == true){
+//                        Toast.makeText(LoginActivity.this,"Вход успешен", Toast.LENGTH_SHORT).show();
+//                        Intent intent = new Intent(getApplicationContext(),HomeActivity.class);
+//                        int id = DB.CurrentUser(user);
+//                        intent.putExtra("id", id);
+//                        startActivity(intent);
+//                    }else {
+//                        Toast.makeText(LoginActivity.this,"Логин или пароль введены неверно, измените!", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+                Intent intent = new Intent(getApplicationContext(),HomeActivity.class);
+                startActivity(intent);
             }
         });
     }

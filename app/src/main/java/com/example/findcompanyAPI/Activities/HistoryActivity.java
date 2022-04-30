@@ -1,5 +1,7 @@
 package com.example.findcompanyAPI.Activities;
 
+import static com.example.findcompanyAPI.Config.baseRetrofitUrl;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,11 +19,20 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
+import com.example.findcompanyAPI.Models.Event;
 import com.example.findcompanyAPI.Models.EventHistory;
 import com.example.findcompanyAPI.R;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HistoryActivity extends AppCompatActivity {
 
@@ -121,29 +132,79 @@ public class HistoryActivity extends AppCompatActivity {
 
         Cursor cursor = dbHelper.getHistoryEvents(db, id_U.toString());
 
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseRetrofitUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ApiServices apiService = retrofit.create(ApiServices.class);
+
+        Call<List<EventHistory>> call = apiService.getHistoryEvents();
+
+        call.enqueue(new Callback<List<EventHistory>>() {
+            @Override
+            public void onResponse(Call<List<EventHistory>> call, Response<List<EventHistory>> response) {
+                if (!response.isSuccessful()){
+                    Log.d("Code", String.valueOf(response.code()));
+                    return;
+                }
+
+                List<EventHistory> events = response.body();
+                Log.d("eve", String.valueOf(events));
+
+//                int i = 0;
+//                while(events.size() < i){
+//                    expensesList.add(i, (Event) events);
+//                    i++;
+//                }
+
+
+                for (EventHistory event : events){
+                    EventHistory result = new EventHistory(
+                            event.getId(),
+                            event.getId_event(),
+                            event.getId_creator(),
+                            event.getId_user(),
+                            event.getPlace_event(),
+                            event.getName_event(),
+                            event.getDataAndtime_event(),
+                            event.getMaxParticipants_event()
+                    );
+                    int i = 0;
+                   expensesList.add( i,result);
+                    Log.d("id",event.getName_event());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<EventHistory>> call, Throwable t) {
+                Log.d("gg","11");
+            }
+        });
+
         if(cursor.getCount() == 0) {
             expensesStr = new String[] {" "};
             return;
         }
-        expensesStr = new String[cursor.getCount()];
-        int i = 0;
-        Log.d("myTag", "setEvents2");
-        while(cursor.moveToNext()) {
-            EventHistory expenses = new EventHistory(
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
-            );
-
-            expensesList.add(i, expenses);
-            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getId_creator() + " " + expenses.getName_event()
-                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
-        }
+//        expensesStr = new String[cursor.getCount()];
+//        int i = 0;
+//        Log.d("myTag", "setEvents2");
+//        while(cursor.moveToNext()) {
+//            EventHistory expenses = new EventHistory(
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
+//            );
+//
+//            expensesList.add(i, expenses);
+//            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getId_creator() + " " + expenses.getName_event()
+//                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
+//        }
 
     }
 

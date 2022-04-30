@@ -160,7 +160,6 @@ public class DBHelper extends SQLiteOpenHelper {
     }
     //registration
 
-
     //createEvent
     public void CreateEvent(Integer id_user,Integer id_creator, String name_event, String place_event, String evnt_date, Integer maxParticipacion) {
         SQLiteDatabase MyDB = this.getWritableDatabase();
@@ -198,9 +197,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         return "";
     }
-
     //createEvent
-
 
     //findCompany
     public Cursor getEvents(SQLiteDatabase db) {

@@ -4,55 +4,57 @@ import java.io.Serializable;
 
 public class EventHistory implements Serializable {
 
-    public EventHistory(int id,int id_event, int id_user,int id_creator, String name_event, String place_event, String dataAndtime_event, int maxParticipants_event) {
-        this.Id = id;
-        this.Id_event = id_event;
-        this.Id_creator = id_creator;
-        this.Id_user = id_user;
-        this.Place_event = place_event;
-        this.Name_event = name_event;
-        this.DataAndtime_event = dataAndtime_event;
-        this.MaxParticipants_event = maxParticipants_event;
+    public EventHistory(String id,String id_event, String id_user,String id_creator,
+                        String name_event, String place_event,
+                        String data_and_time_event, String max_participants_event) {
+        this.id = id;
+        this.id_event = id_event;
+        this.id_creator = id_creator;
+        this.id_user = id_user;
+        this.place_event = place_event;
+        this.name_event = name_event;
+        this.data_and_time_event = data_and_time_event;
+        this.max_participants_event = max_participants_event;
     }
 
-    private int Id;
-    public String getId(){ return Integer.toString(Id);}
+    private String  id;
+    public String getId(){ return id;}
 
-    private int Id_event;
-    public String getId_event(){ return Integer.toString(Id_event);}
+    private String id_event;
+    public String getId_event(){ return id_event;}
 
-    private int Id_user;
-    public String getId_user(){ return Integer.toString(Id_user);}
+    private String id_user;
+    public String getId_user(){ return id_user;}
 
-    private int Id_creator;
-    public String getId_creator(){ return Integer.toString(Id_creator);}
+    private String id_creator;
+    public String getId_creator(){ return id_creator;}
     //
-    private String Name_event;
+    private String name_event;
     public String getName_event(){
-        return this.Name_event;
+        return this.name_event;
     }
     public void setName_event(String info){
-        this.Name_event = info;
+        this.name_event = info;
     }
     //
-    private String Place_event;
+    private String place_event;
     public String getPlace_event(){
-        return Place_event;
+        return place_event;
     }
     public void setPlace_event(String info){
-        this.Place_event = info;
+        this.place_event = info;
     }
     //
-    private String DataAndtime_event;
+    private String data_and_time_event;
     public String getDataAndtime_event(){
-        return DataAndtime_event;
+        return data_and_time_event;
     }
     public void setDataAndtime_event(String info){
-        this.Place_event = info;
+        this.data_and_time_event = info;
     }
     //
-    private int MaxParticipants_event;
-    public String getMaxParticipants_event(){ return Integer.toString(MaxParticipants_event);}
+    private String max_participants_event;
+    public String getMaxParticipants_event(){ return max_participants_event;}
 
 
 
