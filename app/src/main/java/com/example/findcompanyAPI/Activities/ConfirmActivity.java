@@ -1,12 +1,17 @@
 package com.example.findcompanyAPI.Activities;
 
+import static com.example.findcompanyAPI.Config.appPreferencesName;
+import static com.example.findcompanyAPI.Config.baseRetrofitUrl;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,11 +21,24 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.ConfirmVisit;
+import com.example.findcompanyAPI.Models.EventHistory;
 import com.example.findcompanyAPI.R;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ConfirmActivity extends AppCompatActivity {
 
@@ -67,35 +85,91 @@ public class ConfirmActivity extends AppCompatActivity {
 
     private void setConfrimEvents()
     {
-
         expensesList = new ArrayList<>();
 
-        Cursor cursor = dbHelper.getComfirmEvents(db, id_U.toString());
+        SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+        String finalresult = "Bearer " + settings.getString("token","");
 
-        if(cursor.getCount() == 0) {
-            expensesStr = new String[] {" "};
-            return;
-        }
-        expensesStr = new String[cursor.getCount()];
-        int i = 0;
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                        Request originalRequest = chain.request();
+                        Request newRequest = originalRequest.newBuilder()
+                                .header("Authorization", finalresult)
+                                .build();
+                        return chain.proceed(newRequest);
+                    }
+                })
+                .build();
 
-        while(cursor.moveToNext()) {
-            ConfirmVisit expenses = new ConfirmVisit(
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
-                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("secondname"))
-            );
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseRetrofitUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
+                .build();
 
-            expensesList.add(i, expenses);
-            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getId_creator() + " " + expenses.getName_event()
-                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
-        }
+        ApiServices apiService = retrofit.create(ApiServices.class);
+
+        Call<List<ConfirmVisit>> call = apiService.getConfirmEvents();
+
+        call.enqueue(new Callback<List<ConfirmVisit>>() {
+            @Override
+            public void onResponse(Call<List<ConfirmVisit>> call, Response<List<ConfirmVisit>> response) {
+                if (!response.isSuccessful()){
+                    Log.d("Code", String.valueOf(response.code()));
+                    return;
+                }
+
+                List<ConfirmVisit> events = response.body();
+
+                for (ConfirmVisit event : events){
+                    ConfirmVisit result = new ConfirmVisit(
+                            event.getId_event(),
+                            event.getId_creator(),
+                            event.getId_user(),
+                            event.getName_event(),
+                            event.getPlace_event(),
+                            event.getDataAndtime_event(),
+                            event.getMaxParticipants_event(),
+                            event.getSurname()
+                    );
+                    int i = 0;
+                    expensesList.add( i,result);
+                    Log.d("id",event.getName_event());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ConfirmVisit>> call, Throwable t) {
+                Log.d("gg","11");
+            }
+        });
+
+//        if(cursor.getCount() == 0) {
+//            expensesStr = new String[] {" "};
+//            return;
+//        }
+//        expensesStr = new String[cursor.getCount()];
+//        int i = 0;
+//
+//        while(cursor.moveToNext()) {
+//            ConfirmVisit expenses = new ConfirmVisit(
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
+//                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event")),
+//                    cursor.getString(cursor.getColumnIndexOrThrow("secondname"))
+//            );
+//
+//            expensesList.add(i, expenses);
+//            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getId_creator() + " " + expenses.getName_event()
+//                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
+//        }
 
     }
 

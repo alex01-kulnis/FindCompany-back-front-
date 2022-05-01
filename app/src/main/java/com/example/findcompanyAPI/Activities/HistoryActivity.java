@@ -1,5 +1,6 @@
 package com.example.findcompanyAPI.Activities;
 
+import static com.example.findcompanyAPI.Config.appPreferencesName;
 import static com.example.findcompanyAPI.Config.baseRetrofitUrl;
 
 import androidx.annotation.NonNull;
@@ -7,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -25,9 +27,14 @@ import com.example.findcompanyAPI.Models.Event;
 import com.example.findcompanyAPI.Models.EventHistory;
 import com.example.findcompanyAPI.R;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -130,11 +137,27 @@ public class HistoryActivity extends AppCompatActivity {
     {
         expensesList = new ArrayList<>();
 
-        Cursor cursor = dbHelper.getHistoryEvents(db, id_U.toString());
+        //Cursor cursor = dbHelper.getHistoryEvents(db, id_U.toString());
+        SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+        String finalresult = "Bearer " + settings.getString("token","");
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                        Request originalRequest = chain.request();
+                        Request newRequest = originalRequest.newBuilder()
+                                .header("Authorization", finalresult)
+                                .build();
+                        return chain.proceed(newRequest);
+                    }
+                })
+                .build();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseRetrofitUrl)
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
                 .build();
 
         ApiServices apiService = retrofit.create(ApiServices.class);
@@ -182,10 +205,10 @@ public class HistoryActivity extends AppCompatActivity {
             }
         });
 
-        if(cursor.getCount() == 0) {
-            expensesStr = new String[] {" "};
-            return;
-        }
+//        if(cursor.getCount() == 0) {
+//            expensesStr = new String[] {" "};
+//            return;
+//        }
 //        expensesStr = new String[cursor.getCount()];
 //        int i = 0;
 //        Log.d("myTag", "setEvents2");
@@ -205,7 +228,7 @@ public class HistoryActivity extends AppCompatActivity {
 //            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getId_creator() + " " + expenses.getName_event()
 //                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
 //        }
-
+       // customListAdapter.notifyDataSetChanged();
     }
 
     public class CustomListAdapter extends BaseAdapter {

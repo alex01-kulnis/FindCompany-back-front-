@@ -1,10 +1,13 @@
 package com.example.findcompanyAPI.Activities;
 
+import static com.example.findcompanyAPI.Config.appPreferencesName;
 import static com.example.findcompanyAPI.Config.baseRetrofitUrl;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,8 +20,14 @@ import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.Event;
 import com.example.findcompanyAPI.R;
+
+import java.io.IOException;
 import java.util.List;
 
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -37,35 +46,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(baseRetrofitUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        ApiServices apiService = retrofit.create(ApiServices.class);
-
-        Call<List<Event>> call = apiService.getEvents();
-
-        call.enqueue(new Callback<List<Event>>() {
-            @Override
-            public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
-                if (!response.isSuccessful()){
-                    Log.d("Code", String.valueOf(response.code()));
-                    return;
-                }
-
-                List<Event> events = response.body();
-
-                for (Event event :events){
-                    Log.d("id",event.getName_event());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Event>> call, Throwable t) {
-                Log.d("gg","11");
-            }
-        });
+        configureRetrofif();
 
         login = (EditText) findViewById(R.id.login);
         password = (EditText) findViewById(R.id.password);
@@ -118,5 +99,59 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void configureRetrofif(){
+        /*SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+        String finalresult = "Bearer " + settings.getString("token","");
+
+
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                        Request originalRequest = chain.request();
+                        Request newRequest = originalRequest.newBuilder()
+                                .header("Authorization", finalresult)
+                                .build();
+                        return chain.proceed(newRequest);
+                    }
+                })
+                .addInterceptor(loggingInterceptor)
+                .build();*/
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseRetrofitUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                //.client(okHttpClient)
+                .build();
+
+        ApiServices apiService = retrofit.create(ApiServices.class);
+
+        Call<List<Event>> call = apiService.getEvents();
+
+        call.enqueue(new Callback<List<Event>>() {
+            @Override
+            public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
+                if (!response.isSuccessful()){
+                    Log.d("Code", String.valueOf(response.code()));
+                    return;
+                }
+
+                List<Event> events = response.body();
+
+                for (Event event :events){
+                    Log.d("id",event.getName_event());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Event>> call, Throwable t) {
+                Log.d("gg","11");
+            }
+        });
     }
 }

@@ -1,11 +1,13 @@
 package com.example.findcompanyAPI.Activities;
 
+import static com.example.findcompanyAPI.Config.appPreferencesName;
 import static com.example.findcompanyAPI.Config.baseRetrofitUrl;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -26,9 +28,14 @@ import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.Event;
 import com.example.findcompanyAPI.R;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -169,11 +176,29 @@ public class HomeActivity extends AppCompatActivity {
 
     private void setEvents() {
         expensesList.clear();
-        Cursor cursor = dbHelper.getEvents(db);
+        //Cursor cursor = dbHelper.getEvents(db);
         Log.d("22", "String.valueOf(events)");
+
+        SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+        String finalresult = "Bearer " + settings.getString("token","");
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                        Request originalRequest = chain.request();
+                        Request newRequest = originalRequest.newBuilder()
+                                .header("Authorization", finalresult)
+                                .build();
+                        return chain.proceed(newRequest);
+                    }
+                })
+                .build();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseRetrofitUrl)
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
                 .build();
 
         ApiServices apiService = retrofit.create(ApiServices.class);
@@ -189,14 +214,6 @@ public class HomeActivity extends AppCompatActivity {
                 }
 
                 List<Event> events = response.body();
-                Log.d("eve", String.valueOf(events));
-
-//                int i = 0;
-//                while(events.size() < i){
-//                    expensesList.add(i, (Event) events);
-//                    i++;
-//                }
-
 
                 for (Event event :events){
                     Event result = new Event(
