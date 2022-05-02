@@ -20,6 +20,7 @@ import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.Event;
 import com.example.findcompanyAPI.Models.User;
 import com.example.findcompanyAPI.R;
+import com.example.findcompanyAPI.Utils.Utils;
 
 import java.io.IOException;
 import java.util.List;
@@ -54,6 +55,12 @@ public class LoginActivity extends AppCompatActivity {
         auth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                if(!Utils.hasConnection(LoginActivity.this)) {
+                    Toast.makeText(LoginActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
                 String loginn = login.getText().toString();
                 String passwordd = password.getText().toString();
 
@@ -97,17 +104,11 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.makeText(LoginActivity.this,"Логин или пароль введены неверно, измените!", Toast.LENGTH_SHORT).show();
                                 return;
                             }
-                           Log.d("das",response.body().getToken());
-                            //String token  = response.body().getToken();
                             SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
                             SharedPreferences.Editor editor = settings.edit();
                             editor.putString( "token", response.body().getToken());
                             editor.apply();
 
-//                            String storedPreference = settings.getString("token","");
-//                            Log.d("token",storedPreference);
-
-              //              settings.edit().remove("token").apply();
 
                             Intent intent = new Intent(getApplicationContext(),HomeActivity.class);
                             startActivity(intent);

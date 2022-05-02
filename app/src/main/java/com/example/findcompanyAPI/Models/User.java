@@ -13,8 +13,7 @@ public class User implements Serializable {
     @SerializedName("firstname")
     private String firstname;
 
-    public User(int id_user, String firstname, String secondname, String login, String password) {
-        this.id_user = id_user;
+    public User(String firstname, String secondname, String login, String password) {
         this.firstname = firstname;
         this.secondname = secondname;
         this.login = login;

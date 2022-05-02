@@ -19,7 +19,9 @@ import android.widget.Toast;
 import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.Event;
+import com.example.findcompanyAPI.Models.User;
 import com.example.findcompanyAPI.R;
+import com.example.findcompanyAPI.Utils.Utils;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +29,7 @@ import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.internal.Util;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -62,32 +65,43 @@ public class MainActivity extends AppCompatActivity {
         registration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                if(!Utils.hasConnection(MainActivity.this)) {
+                    Toast.makeText(MainActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 String uniquelogin = login.getText().toString();
                 String pass = password.getText().toString();
                 String first = firstname.getText().toString();
                 String second = secondname.getText().toString();
 
-                if(uniquelogin.equals("") || pass.equals("") || first.equals("") || second.equals(""))
-                    Toast.makeText(MainActivity.this,"Заполние все поля!",Toast.LENGTH_SHORT).show();
-                else {
-                        Boolean checkUser = dbHelper.CheckUser(uniquelogin);
-                        if (checkUser == false) {
-                            Boolean insert = dbHelper.insertData(uniquelogin,pass,first,second);
-                            if(insert == true) {
-                                Toast.makeText(MainActivity.this,"Регистрация прошла успешно",Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-                                int id = dbHelper.CurrentUser(uniquelogin);
-                                intent.putExtra("id", id);
-                                startActivity(intent);
-                            }
-                            else {
-                                Toast.makeText(MainActivity.this,"Регистрация провалена",Toast.LENGTH_SHORT).show();
-                            }
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl(baseRetrofitUrl)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+
+                ApiServices apiService = retrofit.create(ApiServices.class);
+
+                User user = new User(first,second,uniquelogin,pass);
+
+                Call<User> call = apiService.registration(user);
+
+                call.enqueue(new Callback<User>() {
+                    @Override
+                    public void onResponse(Call<User> call, Response<User> response) {
+                        if (!response.isSuccessful()){
+                            Log.d("Code", String.valueOf(response.code()));
+                            return;
                         }
-                        else {
-                            Toast.makeText(MainActivity.this,"Пользователь с таким логином уже есть, измените его!",Toast.LENGTH_SHORT).show();
+
+                        Toast.makeText(MainActivity.this,"Регистрация прошла успешно",Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(Call<User> call, Throwable t) {
+                            Log.d("gg","11");
                         }
-                }
+                });
             }
         });
 
@@ -100,6 +114,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+//    if(Utils.hasConnection(MainActivity.this)) {}
+//    else
+//    {
+//        Toast.makeText(MainActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+//    }
 
     private void configureRetrofif(){
         /*SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);

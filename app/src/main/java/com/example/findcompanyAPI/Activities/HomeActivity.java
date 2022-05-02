@@ -26,7 +26,9 @@ import android.widget.Toast;
 import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.Event;
+import com.example.findcompanyAPI.Models.User;
 import com.example.findcompanyAPI.R;
+import com.example.findcompanyAPI.Utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,11 +67,6 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         //getSupportActionBar().hide();
-
-        Bundle arguments = getIntent().getExtras();
-//        id_U = ((Integer) arguments.get("id"));
-        Log.d("myId", String.valueOf(id_U));
-
         binding();
     }
 
@@ -94,37 +91,72 @@ public class HomeActivity extends AppCompatActivity {
         buttonF.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (search.length() == 0) {
-                    setEvents();
+                if(!Utils.hasConnection(HomeActivity.this)) {
+                    Toast.makeText(HomeActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
                     return;
                 }
-//                expensesList.clear();
-//                Cursor cursor = dbHelper.getParticularEvents(search.getText().toString());
-//
-//                if (cursor.getCount() == 0) {
-//                    expensesStr = new String[]{" "};
-//                    return;
-//                }
-//                expensesStr = new String[cursor.getCount()];
-//                int i = 0;
-//
-//                while (cursor.moveToNext()) {
-//                    Event expenses = new Event(
-//                            cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
-//                            cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
-//                            cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
-//                            cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
-//                            cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
-//                            cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
-//                            cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
-//                    );
-//
-//                    expensesList.add(i, expenses);
-//                    expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getName_event()
-//                            + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
-//                }
-                customListAdapter.notifyDataSetChanged();
+
+                expensesList.clear();
+                SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+                String finalresult = "Bearer " + settings.getString("token","");
+
+                OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                        .addInterceptor(new Interceptor() {
+                            @Override
+                            public okhttp3.Response intercept(Chain chain) throws IOException {
+                                Request originalRequest = chain.request();
+                                Request newRequest = originalRequest.newBuilder()
+                                        .header("Authorization", finalresult)
+                                        .build();
+                                return chain.proceed(newRequest);
+                            }
+                        })
+                        .build();
+
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl(baseRetrofitUrl)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .client(okHttpClient)
+                        .build();
+
+
+                ApiServices apiService = retrofit.create(ApiServices.class);
+
+                Event event = new Event(search.getText().toString());
+
+                Call<List<Event>> call = apiService.getSearchEvents(event);
+
+                call.enqueue(new Callback<List<Event>>() {
+                    @Override
+                    public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
+                        if (!response.isSuccessful()){
+                            Log.d("Code", String.valueOf(response.code()));
+                            return;
+                        }
+
+                        List<Event> events = response.body();
+
+                        for (Event event :events){
+                            Event result = new Event(
+                                    event.getId_event(),
+                                    event.getId_creator(),
+                                    event.getName_event(),
+                                    event.getPlace_event(),
+                                    event.getDataAndtime_event(),
+                                    event.getMaxParticipants_event()
+                            );
+                            int i = 0;
+                            expensesList.add( i,result);
+                        }
+                        customListAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Event>> call, Throwable t) {
+                        Log.d("gg","11");
+                    }
+                });
+
             }
         });
     }
@@ -175,8 +207,11 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void setEvents() {
+        if(!Utils.hasConnection(HomeActivity.this)) {
+            Toast.makeText(HomeActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+            return;
+        }
         expensesList.clear();
-        //Cursor cursor = dbHelper.getEvents(db);
         Log.d("22", "String.valueOf(events)");
 
         SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
@@ -210,6 +245,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
                 if (!response.isSuccessful()){
                     Log.d("Code", String.valueOf(response.code()));
+                    Log.d("Error", String.valueOf(response.errorBody()));
                     return;
                 }
 
@@ -219,7 +255,6 @@ public class HomeActivity extends AppCompatActivity {
                     Event result = new Event(
                             event.getId_event(),
                             event.getId_creator(),
-                            event.getId_user(),
                             event.getName_event(),
                             event.getPlace_event(),
                             event.getDataAndtime_event(),
@@ -237,28 +272,6 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
-//        if (cursor.getCount() == 0) {
-//            expensesStr = new String[]{" "};
-//            return;
-//        }
-//        expensesStr = new String[cursor.getCount()];
-//        int i = 0;
-
-//        while (cursor.moveToNext()) {
-//            Event expenses = new Event(
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
-//            );
-//
-//            expensesList.add(i, expenses);
-//            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getName_event()
-//                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
-//        }
         customListAdapter.notifyDataSetChanged();
     }
 
@@ -312,36 +325,64 @@ public class HomeActivity extends AppCompatActivity {
             buttonS.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String id_event = ExpensesList.get(position).getId_event();
-                    int id_Event = Integer.parseInt(id_event);
-                    String id_user = ExpensesList.get(position).getId_user();
-                    //int id_User = Integer.parseInt (id_user);
-
-                    String maxParticipacion = ExpensesList.get(position).getMaxParticipants_event();
-                    int MaxParticipacion = Integer.parseInt(maxParticipacion);
-
-                    String id_User = Integer.toString(id_U);
-                    boolean isUse = dbHelper.repitEvent(id_User, id_event);
-                    Log.d("isUse", String.valueOf(isUse));
-                    int countOfParticipant = dbHelper.CountParticipants(id_Event);
-                    if (countOfParticipant >= MaxParticipacion)
-                    {
-                        Toast.makeText(HomeActivity.this, "Мест больше нету", Toast.LENGTH_SHORT).show();
+                    if(!Utils.hasConnection(HomeActivity.this)) {
+                        Toast.makeText(HomeActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    if (isUse) {
-                        Toast.makeText(HomeActivity.this, "Вы уже участвуте или ожидаете", Toast.LENGTH_SHORT).show();
-                    } else {
-                        String surname = dbHelper.currentSecondName(Integer.toString(id_U));
-                        String id_creator = ExpensesList.get(position).getId_creator();
-                        int id_Creator = Integer.parseInt(id_creator);
-                        String name_event = ExpensesList.get(position).getName_event();
-                        String place_event = ExpensesList.get(position).getPlace_event();
-                        String evnt_date = ExpensesList.get(position).getDataAndtime_event();
-                        dbHelper.AddConfirmStr(id_Event, id_Creator, id_U, name_event, place_event, evnt_date, MaxParticipacion, surname);
-                        Toast.makeText(HomeActivity.this, "Ожидайте подтверждения или отклонения", Toast.LENGTH_SHORT).show();
-                    }
-                    recreate();
+                    Integer id_event = ExpensesList.get(position).getId_event();
+                    Integer id_creator = ExpensesList.get(position).getId_creator();
+                    String name_event = ExpensesList.get(position).getName_event();
+                    String place_event = ExpensesList.get(position).getPlace_event();
+                    String evnt_date = ExpensesList.get(position).getDataAndtime_event();
+                    Integer maxParticipacion = ExpensesList.get(position).getMaxParticipants_event();
+
+                    SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+                    String finalresult = "Bearer " + settings.getString("token","");
+
+                    OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                            .addInterceptor(new Interceptor() {
+                                @Override
+                                public okhttp3.Response intercept(Chain chain) throws IOException {
+                                    Request originalRequest = chain.request();
+                                    Request newRequest = originalRequest.newBuilder()
+                                            .header("Authorization", finalresult)
+                                            .build();
+                                    return chain.proceed(newRequest);
+                                }
+                            })
+                            .build();
+
+                    Retrofit retrofit = new Retrofit.Builder()
+                            .baseUrl(baseRetrofitUrl)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .client(okHttpClient)
+                            .build();
+
+                    ApiServices apiService = retrofit.create(ApiServices.class);
+
+                    Event event = new Event(id_event,id_creator,name_event,place_event,evnt_date,maxParticipacion);
+
+                    Call<Event> call = apiService.apply(event);
+
+                    call.enqueue(new Callback<Event>() {
+                        @Override
+                        public void onResponse(Call<Event> call, Response<Event> response) {
+                            if (!response.isSuccessful()){
+                                Log.d("Code", String.valueOf(response.code()));
+                                Log.d("Error", String.valueOf(response.errorBody()));
+                                return;
+                            }
+
+                            String message = response.message();
+                            Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
+                            recreate();
+                        }
+
+                        @Override
+                        public void onFailure(Call<Event> call, Throwable t) {
+                            Log.d("gg","11");
+                        }
+                    });
                 }
             });
             return view;

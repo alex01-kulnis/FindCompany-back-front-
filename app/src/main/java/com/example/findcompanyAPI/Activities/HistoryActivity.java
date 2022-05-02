@@ -20,12 +20,14 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.Event;
 import com.example.findcompanyAPI.Models.EventHistory;
 import com.example.findcompanyAPI.R;
+import com.example.findcompanyAPI.Utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,8 +81,6 @@ public class HistoryActivity extends AppCompatActivity {
         setHistoryEvents();
         customListAdapter = new CustomListAdapter(this, expensesList);
         expensesListV.setAdapter(customListAdapter);
-
-
     }
 
     @Override
@@ -135,9 +135,12 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void setHistoryEvents()
     {
+        if(!Utils.hasConnection(HistoryActivity.this)) {
+            Toast.makeText(HistoryActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+            return;
+        }
         expensesList = new ArrayList<>();
 
-        //Cursor cursor = dbHelper.getHistoryEvents(db, id_U.toString());
         SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
         String finalresult = "Bearer " + settings.getString("token","");
 
@@ -169,18 +172,12 @@ public class HistoryActivity extends AppCompatActivity {
             public void onResponse(Call<List<EventHistory>> call, Response<List<EventHistory>> response) {
                 if (!response.isSuccessful()){
                     Log.d("Code", String.valueOf(response.code()));
+                    customListAdapter.notifyDataSetChanged();
                     return;
                 }
 
                 List<EventHistory> events = response.body();
                 Log.d("eve", String.valueOf(events));
-
-//                int i = 0;
-//                while(events.size() < i){
-//                    expensesList.add(i, (Event) events);
-//                    i++;
-//                }
-
 
                 for (EventHistory event : events){
                     EventHistory result = new EventHistory(
@@ -194,14 +191,16 @@ public class HistoryActivity extends AppCompatActivity {
                             event.getMaxParticipants_event()
                     );
                     int i = 0;
-                   expensesList.add( i,result);
+                   expensesList.add( i, result);
                     Log.d("id",event.getName_event());
                 }
+                customListAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onFailure(Call<List<EventHistory>> call, Throwable t) {
                 Log.d("gg","11");
+                customListAdapter.notifyDataSetChanged();
             }
         });
 

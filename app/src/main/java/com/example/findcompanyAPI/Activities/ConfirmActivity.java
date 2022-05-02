@@ -20,12 +20,15 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Models.ConfirmVisit;
 import com.example.findcompanyAPI.Models.EventHistory;
+import com.example.findcompanyAPI.Models.User;
 import com.example.findcompanyAPI.R;
+import com.example.findcompanyAPI.Utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,6 +88,10 @@ public class ConfirmActivity extends AppCompatActivity {
 
     private void setConfrimEvents()
     {
+        if(!Utils.hasConnection(ConfirmActivity.this)) {
+            Toast.makeText(ConfirmActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+            return;
+        }
         expensesList = new ArrayList<>();
 
         SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
@@ -125,6 +132,7 @@ public class ConfirmActivity extends AppCompatActivity {
 
                 for (ConfirmVisit event : events){
                     ConfirmVisit result = new ConfirmVisit(
+                            event.getId(),
                             event.getId_event(),
                             event.getId_creator(),
                             event.getId_user(),
@@ -145,31 +153,6 @@ public class ConfirmActivity extends AppCompatActivity {
                 Log.d("gg","11");
             }
         });
-
-//        if(cursor.getCount() == 0) {
-//            expensesStr = new String[] {" "};
-//            return;
-//        }
-//        expensesStr = new String[cursor.getCount()];
-//        int i = 0;
-//
-//        while(cursor.moveToNext()) {
-//            ConfirmVisit expenses = new ConfirmVisit(
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("secondname"))
-//            );
-//
-//            expensesList.add(i, expenses);
-//            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getId_creator() + " " + expenses.getName_event()
-//                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
-//        }
 
     }
 
@@ -224,8 +207,6 @@ public class ConfirmActivity extends AppCompatActivity {
     }
 
 
-
-
     public class CustomListAdapter extends BaseAdapter {
 
         private ArrayList<ConfirmVisit> ExpensesList;
@@ -275,29 +256,150 @@ public class ConfirmActivity extends AppCompatActivity {
             buttonConf.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v) {
-                    String id = ExpensesList.get(position).getId();
-                    int Id = Integer.parseInt (id);
-                    String id_event = ExpensesList.get(position).getId_event();
-                    int id_Event = Integer.parseInt (id_event);
-                    String id_user =  ExpensesList.get(position).getId_user();
-                    int id_User = Integer.parseInt (id_user);
-                    String id_creator = ExpensesList.get(position).getId_creator();
-                    int id_Creator = Integer.parseInt (id_creator);
-                    String maxParticipacion = ExpensesList.get(position).getMaxParticipants_event();
-                    int MaxParticipacion = Integer.parseInt (maxParticipacion);
+                    if(!Utils.hasConnection(ConfirmActivity.this)) {
+                        Toast.makeText(ConfirmActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    Integer id = ExpensesList.get(position).getId();
+                    Integer id_event = ExpensesList.get(position).getId_event();
+                    Integer id_user =  ExpensesList.get(position).getId_user();
+                    Integer id_creator = ExpensesList.get(position).getId_creator();
+                    Integer maxParticipacion = ExpensesList.get(position).getMaxParticipants_event();
                     String name_event = ExpensesList.get(position).getName_event();
                     String place_event = ExpensesList.get(position).getPlace_event();
                     String evnt_date  = ExpensesList.get(position).getDataAndtime_event();
-                    dbHelper.confirmAppAndSend(id_Event,id_User,id_Creator,name_event,place_event,evnt_date,MaxParticipacion);
-                    dbHelper.deleteConfirm(db,ExpensesList.get(position));
-                    recreate();
+                    String surname  = ExpensesList.get(position).getSurname();
+
+                    ConfirmVisit result = new ConfirmVisit(
+                            id,
+                            id_event,
+                            id_creator,
+                            id_user,
+                            name_event,
+                            place_event,
+                            evnt_date,
+                            maxParticipacion,
+                            surname
+                    );
+
+                    SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+                    String finalresult = "Bearer " + settings.getString("token","");
+
+                    OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                            .addInterceptor(new Interceptor() {
+                                @Override
+                                public okhttp3.Response intercept(Chain chain) throws IOException {
+                                    Request originalRequest = chain.request();
+                                    Request newRequest = originalRequest.newBuilder()
+                                            .header("Authorization", finalresult)
+                                            .build();
+                                    return chain.proceed(newRequest);
+                                }
+                            })
+                            .build();
+
+                    Retrofit retrofit = new Retrofit.Builder()
+                            .baseUrl(baseRetrofitUrl)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .client(okHttpClient)
+                            .build();
+
+                    ApiServices apiService = retrofit.create(ApiServices.class);
+
+                    Call<ConfirmVisit> call = apiService.сonfirmVisit(result);
+
+                    call.enqueue(new Callback<ConfirmVisit>() {
+                        @Override
+                        public void onResponse(Call<ConfirmVisit> call, Response<ConfirmVisit> response) {
+                            if(!response.isSuccessful()){
+                                Log.d("Code", String.valueOf(response.code()));
+                                recreate();
+                                return;
+                            }
+
+                            recreate();
+                        }
+
+                        @Override
+                        public void onFailure(Call<ConfirmVisit> call, Throwable t) {
+                            Log.d("gg","11");
+                            recreate();
+                        }
+                    });
                 }});
 
             buttonCanc.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v) {
-                    dbHelper.deleteConfirm(db,ExpensesList.get(position));
-                    recreate();
+                    if(!Utils.hasConnection(ConfirmActivity.this)) {
+                        Toast.makeText(ConfirmActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    Integer id = ExpensesList.get(position).getId();
+                    Integer id_event = ExpensesList.get(position).getId_event();
+                    Integer id_user =  ExpensesList.get(position).getId_user();
+                    Integer id_creator = ExpensesList.get(position).getId_creator();
+                    Integer maxParticipacion = ExpensesList.get(position).getMaxParticipants_event();
+                    String name_event = ExpensesList.get(position).getName_event();
+                    String place_event = ExpensesList.get(position).getPlace_event();
+                    String evnt_date  = ExpensesList.get(position).getDataAndtime_event();
+
+                    ConfirmVisit result = new ConfirmVisit(
+                            id,
+                            id_event,
+                            id_creator,
+                            id_user,
+                            name_event,
+                            place_event,
+                            evnt_date,
+                            maxParticipacion
+                    );
+
+                    SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+                    String finalresult = "Bearer " + settings.getString("token","");
+
+                    OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                            .addInterceptor(new Interceptor() {
+                                @Override
+                                public okhttp3.Response intercept(Chain chain) throws IOException {
+                                    Request originalRequest = chain.request();
+                                    Request newRequest = originalRequest.newBuilder()
+                                            .header("Authorization", finalresult)
+                                            .build();
+                                    return chain.proceed(newRequest);
+                                }
+                            })
+                            .build();
+
+                    Retrofit retrofit = new Retrofit.Builder()
+                            .baseUrl(baseRetrofitUrl)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .client(okHttpClient)
+                            .build();
+
+                    ApiServices apiService = retrofit.create(ApiServices.class);
+
+                    Call<ConfirmVisit> call = apiService.deleteConfirmVisit(result);
+
+                    call.enqueue(new Callback<ConfirmVisit>() {
+                        @Override
+                        public void onResponse(Call<ConfirmVisit> call, Response<ConfirmVisit> response) {
+                            if(!response.isSuccessful()){
+                                Log.d("Code", String.valueOf(response.code()));
+                                recreate();
+                                return;
+                            }
+
+                            recreate();
+                        }
+
+                        @Override
+                        public void onFailure(Call<ConfirmVisit> call, Throwable t) {
+                            Log.d("gg","11");
+                            recreate();
+                        }
+                    });
                 }});
             return view;
         }

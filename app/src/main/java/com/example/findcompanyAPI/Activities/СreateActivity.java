@@ -1,10 +1,15 @@
 package com.example.findcompanyAPI.Activities;
 
+import static com.example.findcompanyAPI.Config.appPreferencesName;
+import static com.example.findcompanyAPI.Config.baseRetrofitUrl;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.InputType;
@@ -16,15 +21,28 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.findcompanyAPI.Api.api.ApiServices;
 import com.example.findcompanyAPI.Database.DBHelper;
 import com.example.findcompanyAPI.Helper.DateTimeHelper;
 import com.example.findcompanyAPI.Helper.SystemHelper;
+import com.example.findcompanyAPI.Models.Event;
 import com.example.findcompanyAPI.R;
+import com.example.findcompanyAPI.Utils.Utils;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class СreateActivity extends AppCompatActivity {
 
@@ -159,11 +177,16 @@ public class СreateActivity extends AppCompatActivity {
         createEvent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(!Utils.hasConnection(СreateActivity.this)) {
+                    Toast.makeText(СreateActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
                 String name_event = Name_Event.getText().toString();
                 String place_event = Place_Event.getText().toString();
                 String evnt_date = event_date.getText().toString();
                 String time_start = Time_Start.getText().toString();
-                String finalVariant = evnt_date + " " + time_start;
+                String data_and_time_event = evnt_date + " " + time_start;
                 String maxParticipacion = Max_Paticipation.getText().toString();
                 int maxPatt = Integer.parseInt(maxParticipacion);
 
@@ -179,7 +202,6 @@ public class СreateActivity extends AppCompatActivity {
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
-
                     if (datte.getTime() <= System.currentTimeMillis()) {
                         Toast toast = Toast.makeText(getApplicationContext(), "Некорректная дата", Toast.LENGTH_SHORT);toast.show();
                     }
@@ -188,15 +210,54 @@ public class СreateActivity extends AppCompatActivity {
                             Toast toast = Toast.makeText(getApplicationContext(), "Минимальное кол-во 2 человека!", Toast.LENGTH_SHORT);toast.show();
                             return;
                         }
-                        dbHelper.CreateEvent(id_U,id_U, name_event, place_event, finalVariant, maxPatt);
-                        String id_ev = dbHelper.CurrentIdEvent(name_event);
-                        Log.d("id_evnt", id_ev);
-                        dbHelper.CreateEventAdmin(Integer.parseInt(id_ev),id_U,id_U, name_event, place_event, finalVariant, maxPatt);
-                        clearFields();
-                        Toast toast = Toast.makeText(getApplicationContext(), "Event добавлен", Toast.LENGTH_SHORT);toast.show();
+                        SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+                        String finalresult = "Bearer " + settings.getString("token","");
+
+                        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                                .addInterceptor(new Interceptor() {
+                                    @Override
+                                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                                        Request originalRequest = chain.request();
+                                        Request newRequest = originalRequest.newBuilder()
+                                                .header("Authorization", finalresult)
+                                                .build();
+                                        return chain.proceed(newRequest);
+                                    }
+                                })
+                                .build();
+
+                        Retrofit retrofit = new Retrofit.Builder()
+                                .baseUrl(baseRetrofitUrl)
+                                .addConverterFactory(GsonConverterFactory.create())
+                                .client(okHttpClient)
+                                .build();
+
+                        ApiServices apiService = retrofit.create(ApiServices.class);
+
+                        Event event = new Event(name_event,place_event,data_and_time_event,maxPatt);
+
+                        Call<Event> call = apiService.createEvent(event);
+
+                        call.enqueue(new Callback<Event>() {
+                            @Override
+                            public void onResponse(Call<Event> call, Response<Event> response) {
+                                if (!response.isSuccessful()){
+                                    Log.d("Code", String.valueOf(response.code()));
+                                    Log.d("Error", String.valueOf(response.errorBody()));
+                                    return;
+                                }
+
+                                clearFields();
+                                Toast toast = Toast.makeText(getApplicationContext(), "Event добавлен", Toast.LENGTH_SHORT);toast.show();
+                            }
+
+                            @Override
+                            public void onFailure(Call<Event> call, Throwable t) {
+                                Log.d("gg","11");
+                            }
+                        });
                     }
                 }
-
             }
         });
     }

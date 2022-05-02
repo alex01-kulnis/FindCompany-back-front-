@@ -264,7 +264,7 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public void deleteConfirm(SQLiteDatabase db, ConfirmVisit expenses) {
-        db.delete("ConfirmVisiting", "id = ?", new String[] {expenses.getId()});
+        db.delete("ConfirmVisiting", "id = ?", new String[] {String.valueOf(expenses.getId())});
     }
 
     //HistoryActivity

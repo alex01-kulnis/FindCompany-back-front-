@@ -4,23 +4,11 @@ import java.io.Serializable;
 
 public class ConfirmVisit implements Serializable {
 
-//    public ConfirmVisit(int id, int id_event, int id_user,int id_creator, String name_event, String place_event, String data_and_time_event ,
-//                        int max_participants_event , String surname ) {
-//        this.surname  = surname;
-//        this.id = id;
-//        this.id_event = id_event;
-//        this.id_creator = id_creator;
-//        this.id_user = id_user;
-//        this.place_event = place_event;
-//        this.name_event = name_event;
-//        this.data_and_time_event  = data_and_time_event ;
-//        this.max_participants_event  = max_participants_event ;
-//    }
+    private Integer id;
 
-    private int id;
-
-    public ConfirmVisit(String id_event, String id_creator, String id_user, String name_event, String place_event, String data_and_time_event,
-                        String max_participants_event, String surname) {
+    public ConfirmVisit(Integer id,Integer id_event, Integer id_creator, Integer id_user, String name_event, String place_event, String data_and_time_event,
+                        Integer max_participants_event, String surname) {
+        this.id = id;
         this.id_event = id_event;
         this.id_creator = id_creator;
         this.id_user = id_user;
@@ -31,16 +19,32 @@ public class ConfirmVisit implements Serializable {
         this.surname  = surname;
     }
 
-    public String getId(){ return Integer.toString(id);}
+    public ConfirmVisit(Integer id) {
+        this.id = id;
+    }
 
-    private String id_event;
-    public String getId_event(){ return id_event;}
+    public ConfirmVisit(Integer id, Integer id_event, Integer id_creator, Integer id_user, String name_event, String place_event, String evnt_date,
+                        Integer maxParticipacion) {
+        this.id = id;
+        this.id_event = id_event;
+        this.id_creator = id_creator;
+        this.id_user = id_user;
+        this.name_event = name_event;
+        this.place_event = place_event;
+        this.data_and_time_event  = evnt_date ;
+        this.max_participants_event  = maxParticipacion ;
+    }
 
-    private String id_user;
-    public String getId_user(){ return id_user;}
+    public Integer getId(){ return id;}
 
-    private String id_creator;
-    public String getId_creator(){ return id_creator;}
+    private Integer id_event;
+    public Integer getId_event(){ return id_event;}
+
+    private Integer id_user;
+    public Integer getId_user(){ return id_user;}
+
+    private Integer id_creator;
+    public Integer getId_creator(){ return id_creator;}
     //
     private String name_event;
     public String getName_event(){
@@ -66,8 +70,8 @@ public class ConfirmVisit implements Serializable {
         this.data_and_time_event  = info;
     }
     //
-    private String max_participants_event ;
-    public String getMaxParticipants_event(){ return max_participants_event;}
+    private Integer max_participants_event ;
+    public Integer getMaxParticipants_event(){ return max_participants_event;}
 
     private String surname ;
     public String getSurname(){
