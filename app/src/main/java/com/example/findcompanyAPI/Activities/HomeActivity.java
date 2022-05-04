@@ -30,9 +30,13 @@ import com.example.findcompanyAPI.Models.User;
 import com.example.findcompanyAPI.R;
 import com.example.findcompanyAPI.Utils.Utils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -212,7 +216,6 @@ public class HomeActivity extends AppCompatActivity {
             return;
         }
         expensesList.clear();
-        Log.d("22", "String.valueOf(events)");
 
         SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
         String finalresult = "Bearer " + settings.getString("token","");
@@ -245,7 +248,16 @@ public class HomeActivity extends AppCompatActivity {
             public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
                 if (!response.isSuccessful()){
                     Log.d("Code", String.valueOf(response.code()));
-                    Log.d("Error", String.valueOf(response.errorBody()));
+                    try {
+                        JSONObject jObjError = new JSONObject(response.errorBody().string());
+                        String errorMessage = jObjError.getString("message");
+                        Toast.makeText(HomeActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
+                        return;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     return;
                 }
 
@@ -370,12 +382,19 @@ public class HomeActivity extends AppCompatActivity {
                             if (!response.isSuccessful()){
                                 Log.d("Code", String.valueOf(response.code()));
                                 Log.d("Error", String.valueOf(response.errorBody()));
-                                return;
+                                try {
+                                    JSONObject jObjError = new JSONObject(response.errorBody().string());
+                                    String errorMessage = jObjError.getString("message");
+                                    Toast.makeText(HomeActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
+                                    return;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
 
-                            String message = response.message();
-                            Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
-                            recreate();
+                            Toast.makeText(HomeActivity.this,"Ожидайте подтверждения или отклонения",Toast.LENGTH_SHORT).show();
                         }
 
                         @Override

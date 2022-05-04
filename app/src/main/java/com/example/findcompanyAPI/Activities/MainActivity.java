@@ -23,6 +23,9 @@ import com.example.findcompanyAPI.Models.User;
 import com.example.findcompanyAPI.R;
 import com.example.findcompanyAPI.Utils.Utils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -50,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         configureRetrofif();
+        SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+        settings.edit().clear().commit();
 
         login = (EditText) findViewById(R.id.login);
         password = (EditText) findViewById(R.id.password);
@@ -89,12 +94,23 @@ public class MainActivity extends AppCompatActivity {
                 call.enqueue(new Callback<User>() {
                     @Override
                     public void onResponse(Call<User> call, Response<User> response) {
-                        if (!response.isSuccessful()){
+                        if (!response.isSuccessful()) {
                             Log.d("Code", String.valueOf(response.code()));
-                            return;
+                            Log.d("Code",  String.valueOf(response.errorBody()));
+                            try {
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
+                                String errorMessage = jObjError.getString("message");
+                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                                return;
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
-
+                        clearFields();
                         Toast.makeText(MainActivity.this,"Регистрация прошла успешно",Toast.LENGTH_SHORT).show();
+                        return;
                     }
 
                     @Override
@@ -114,11 +130,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-//    if(Utils.hasConnection(MainActivity.this)) {}
-//    else
-//    {
-//        Toast.makeText(MainActivity.this, "No active networks... ", Toast.LENGTH_LONG).show();
-//    }
+
+    private void clearFields() {
+        firstname.setText("");
+        secondname.setText("");
+        login.setText("");
+        password.setText("");
+    }
 
     private void configureRetrofif(){
         /*SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);

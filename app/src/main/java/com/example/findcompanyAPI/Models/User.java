@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 public class User implements Serializable {
 
-
     @SerializedName("id_user")
     private Integer id_user;
 

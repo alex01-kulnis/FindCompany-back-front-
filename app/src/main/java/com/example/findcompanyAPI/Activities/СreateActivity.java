@@ -161,8 +161,8 @@ public class СreateActivity extends AppCompatActivity {
 
         Time_Start.setOnClickListener(view -> {
             SystemHelper.hideKeyboard(this);
-            startWorkDialog.show();
         });
+            startWorkDialog.show();
         Time_Start.setOnFocusChangeListener((view, hasFocus) -> {
             if(hasFocus) {
                 SystemHelper.hideKeyboard(this);

@@ -30,6 +30,9 @@ import com.example.findcompanyAPI.Models.User;
 import com.example.findcompanyAPI.R;
 import com.example.findcompanyAPI.Utils.Utils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -314,8 +317,16 @@ public class ConfirmActivity extends AppCompatActivity {
                         public void onResponse(Call<ConfirmVisit> call, Response<ConfirmVisit> response) {
                             if(!response.isSuccessful()){
                                 Log.d("Code", String.valueOf(response.code()));
-                                recreate();
-                                return;
+                                try {
+                                    JSONObject jObjError = new JSONObject(response.errorBody().string());
+                                    String errorMessage = jObjError.getString("message");
+                                    Toast.makeText(ConfirmActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
+                                    return;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
 
                             recreate();
@@ -324,10 +335,10 @@ public class ConfirmActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(Call<ConfirmVisit> call, Throwable t) {
                             Log.d("gg","11");
-                            recreate();
                         }
                     });
-                }});
+                }}
+            );
 
             buttonCanc.setOnClickListener(new View.OnClickListener(){
                 @Override
@@ -387,20 +398,36 @@ public class ConfirmActivity extends AppCompatActivity {
                         public void onResponse(Call<ConfirmVisit> call, Response<ConfirmVisit> response) {
                             if(!response.isSuccessful()){
                                 Log.d("Code", String.valueOf(response.code()));
-                                recreate();
-                                return;
+                                try {
+                                    JSONObject jObjError = new JSONObject(response.errorBody().string());
+                                    String errorMessage = jObjError.getString("message");
+                                    Toast.makeText(ConfirmActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
+                                    return;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
-
-                            recreate();
+                            try {
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
+                                String errorMessage = jObjError.getString("message");
+                                Toast.makeText(ConfirmActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
+                                recreate();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                         @Override
                         public void onFailure(Call<ConfirmVisit> call, Throwable t) {
                             Log.d("gg","11");
-                            recreate();
                         }
                     });
-                }});
+                }}
+            );
             return view;
         }
     }

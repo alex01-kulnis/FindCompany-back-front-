@@ -22,6 +22,9 @@ import com.example.findcompanyAPI.Models.User;
 import com.example.findcompanyAPI.R;
 import com.example.findcompanyAPI.Utils.Utils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -101,8 +104,16 @@ public class LoginActivity extends AppCompatActivity {
                         public void onResponse(Call<User> call, Response<User> response) {
                             if(!response.isSuccessful()){
                                 Log.d("Code", String.valueOf(response.code()));
-                                Toast.makeText(LoginActivity.this,"Логин или пароль введены неверно, измените!", Toast.LENGTH_SHORT).show();
-                                return;
+                                try {
+                                    JSONObject jObjError = new JSONObject(response.errorBody().string());
+                                    String errorMessage = jObjError.getString("message");
+                                    Toast.makeText(LoginActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
+                                    return;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
                             SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
                             SharedPreferences.Editor editor = settings.edit();
