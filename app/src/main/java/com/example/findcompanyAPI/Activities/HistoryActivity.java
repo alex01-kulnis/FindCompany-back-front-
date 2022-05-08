@@ -171,13 +171,11 @@ public class HistoryActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<EventHistory>> call, Response<List<EventHistory>> response) {
                 if (!response.isSuccessful()){
-                    Log.d("Code", String.valueOf(response.code()));
                     customListAdapter.notifyDataSetChanged();
                     return;
                 }
 
                 List<EventHistory> events = response.body();
-                Log.d("eve", String.valueOf(events));
 
                 for (EventHistory event : events){
                     EventHistory result = new EventHistory(
