@@ -130,7 +130,6 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d("gg","11");
                         }
                     });
-
                 }
             }
         });

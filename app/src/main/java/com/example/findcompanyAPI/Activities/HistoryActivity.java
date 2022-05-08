@@ -203,31 +203,6 @@ public class HistoryActivity extends AppCompatActivity {
                 customListAdapter.notifyDataSetChanged();
             }
         });
-
-//        if(cursor.getCount() == 0) {
-//            expensesStr = new String[] {" "};
-//            return;
-//        }
-//        expensesStr = new String[cursor.getCount()];
-//        int i = 0;
-//        Log.d("myTag", "setEvents2");
-//        while(cursor.moveToNext()) {
-//            EventHistory expenses = new EventHistory(
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_event")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_user")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("id_creator")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("name_event")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("place_event")),
-//                    cursor.getString(cursor.getColumnIndexOrThrow("data_and_time_event")),
-//                    cursor.getInt(cursor.getColumnIndexOrThrow("max_participants_event"))
-//            );
-//
-//            expensesList.add(i, expenses);
-//            expensesStr[i++] = expenses.getId_event() + " " + expenses.getId_user() + " " + expenses.getId_creator() + " " + expenses.getName_event()
-//                    + "-" + expenses.getPlace_event() + " " + expenses.getDataAndtime_event() + " " + expenses.getMaxParticipants_event();
-//        }
-       // customListAdapter.notifyDataSetChanged();
     }
 
     public class CustomListAdapter extends BaseAdapter {

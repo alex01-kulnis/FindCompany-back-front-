@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        configureRetrofif();
+        //configureRetrofif();
         SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
         settings.edit().clear().commit();
 
@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
         auth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                dbHelper.confirmAppAndSend(1,1,1,"name","place","22",5);
                 Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
                 startActivity(intent);
             }

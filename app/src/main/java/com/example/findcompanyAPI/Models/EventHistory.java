@@ -4,9 +4,9 @@ import java.io.Serializable;
 
 public class EventHistory implements Serializable {
 
-    public EventHistory(String id,String id_event, String id_user,String id_creator,
+    public EventHistory(Integer id,Integer id_event, Integer id_user,Integer id_creator,
                         String name_event, String place_event,
-                        String data_and_time_event, String max_participants_event) {
+                        String data_and_time_event, Integer max_participants_event) {
         this.id = id;
         this.id_event = id_event;
         this.id_creator = id_creator;
@@ -17,17 +17,17 @@ public class EventHistory implements Serializable {
         this.max_participants_event = max_participants_event;
     }
 
-    private String  id;
-    public String getId(){ return id;}
+    private Integer  id;
+    public Integer getId(){ return id;}
 
-    private String id_event;
-    public String getId_event(){ return id_event;}
+    private Integer id_event;
+    public Integer getId_event(){ return id_event;}
 
-    private String id_user;
-    public String getId_user(){ return id_user;}
+    private Integer id_user;
+    public Integer getId_user(){ return id_user;}
 
-    private String id_creator;
-    public String getId_creator(){ return id_creator;}
+    private Integer id_creator;
+    public Integer getId_creator(){ return id_creator;}
     //
     private String name_event;
     public String getName_event(){
@@ -53,8 +53,8 @@ public class EventHistory implements Serializable {
         this.data_and_time_event = info;
     }
     //
-    private String max_participants_event;
-    public String getMaxParticipants_event(){ return max_participants_event;}
+    private Integer max_participants_event;
+    public Integer getMaxParticipants_event(){ return max_participants_event;}
 
 
 

@@ -106,30 +106,31 @@ public class DiagramActivity extends AppCompatActivity {
     }
 
     private void binding() {
+        dbHelper = new DBHelper(getApplicationContext());
+        db = dbHelper.getReadableDatabase();
         if(!Utils.hasConnection(DiagramActivity.this)) {
-            dbHelper = new DBHelper(getApplicationContext());
-            db = dbHelper.getReadableDatabase();
-
-
             Cursor cursor = dbHelper.getStatistic(db);
 
             AnimatedPieView animatedPieView = findViewById(R.id.animatedPieView);
             AnimatedPieViewConfig config = new AnimatedPieViewConfig();
             Float angle = -90F;
             config.startAngle(angle).duration(1000).drawText(true).strokeMode(false).textSize(30f);
-
-
-            while (cursor.isAfterLast()){
-
-                //config.addData(new SimplePieInfo(event.getAmount(), getRandomColor(), event.getName_event()));
-                cursor.moveToNext();
+//            config.addData(new SimplePieInfo(13, getRandomColor(),
+//                    "cursor.getString(1) "));
+            while (cursor.moveToNext()){
+                Log.d("TAG1", String.valueOf(cursor.getColumnIndexOrThrow("amount")));
+                Log.d("TAG2", cursor.getString(2));
+                config.addData(new SimplePieInfo(cursor.getColumnIndexOrThrow("amount"),
+                        getRandomColor(),
+                        cursor.getString(1)));
             }
-
+            cursor.close();
 
             animatedPieView.applyConfig(config);
             animatedPieView.start();
         }
         else {
+            dbHelper.deleteAllStrings(db);
             SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
             String finalresult = "Bearer " + settings.getString("token","");
 
@@ -154,14 +155,39 @@ public class DiagramActivity extends AppCompatActivity {
 
             ApiServices apiService = retrofit.create(ApiServices.class);
 
-            Call<List<EventStatistics>> call = apiService.getStatistics();
+            Call<List<EventHistory>> call = apiService.getHistoryEvents();
+
+            call.enqueue(new Callback<List<EventHistory>>() {
+                @Override
+                public void onResponse(Call<List<EventHistory>> call, Response<List<EventHistory>> response) {
+                    if (!response.isSuccessful()){
+                        Log.d("Code", String.valueOf(response.code()));
+                        return;
+                    }
+
+                    List<EventHistory> events = response.body();
+                    Log.d("eve", String.valueOf(events));
+
+                    for (EventHistory event : events){
+                        dbHelper.confirmAppAndSend(event.getId_event(),event.getId_user(),event.getId_creator(),event.getName_event(),event.getPlace_event(),
+                                event.getDataAndtime_event(), event.getMaxParticipants_event());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<EventHistory>> call, Throwable t) {
+                    Log.d("gg","11");
+                }
+            });
+
+            Call<List<EventStatistics>> callStat = apiService.getStatistics();
 
             AnimatedPieView animatedPieView = findViewById(R.id.animatedPieView);
             AnimatedPieViewConfig config = new AnimatedPieViewConfig();
             Float angle = -90F;
             config.startAngle(angle).duration(1000).drawText(true).strokeMode(false).textSize(30f);
 
-            call.enqueue(new Callback<List<EventStatistics>>() {
+            callStat.enqueue(new Callback<List<EventStatistics>>() {
                 @Override
                 public void onResponse(Call<List<EventStatistics>> call, Response<List<EventStatistics>> response) {
                     if (!response.isSuccessful()){
