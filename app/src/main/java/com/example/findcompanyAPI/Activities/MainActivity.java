@@ -43,7 +43,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
 
     EditText  firstname, secondname, login, password;
-    Button auth, registration;
+    Button auth, registration, getStatistic;
     private DBHelper dbHelper;
     private SQLiteDatabase db;
 
@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
         auth = (Button) findViewById(R.id.auth);
         registration = (Button) findViewById(R.id.registration);
+        getStatistic = (Button) findViewById(R.id.getStatistic);
 
         dbHelper = new DBHelper(getApplicationContext());
         db = dbHelper.getReadableDatabase();
@@ -124,8 +125,15 @@ public class MainActivity extends AppCompatActivity {
         auth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dbHelper.confirmAppAndSend(1,1,1,"name","place","22",5);
                 Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        getStatistic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),StatisticActivity.class);
                 startActivity(intent);
             }
         });
