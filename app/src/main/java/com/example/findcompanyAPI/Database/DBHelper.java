@@ -21,7 +21,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
        db.execSQL("create table HistoryVisiting (\n" +
-               "               id integer primary key autoincrement not null,\n" +
+               "               id integer primary key not null,\n" +
                "               id_event integer  not null,\n" +
                "               id_creator integer not null,\n" +
                "               id_user integer not null,\n" +
@@ -41,10 +41,11 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(MyDB);
     }
 
-    public void confirmAppAndSend(Integer id_event, Integer id_user, Integer id_creator, String name_event, String place_event, String data_and_time_event, Integer max_participants_event ) {
+    public void confirmAppAndSend(Integer id,Integer id_event, Integer id_user, Integer id_creator, String name_event, String place_event, String data_and_time_event, Integer max_participants_event ) {
         Log.d("new","message");
         SQLiteDatabase MyDB = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
+        contentValues.put("id", id);
         contentValues.put("id_event", id_event);
         contentValues.put("id_user", id_user);
         contentValues.put("id_creator", id_creator);
@@ -62,8 +63,8 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public Cursor getStatistic(SQLiteDatabase db) {
-        return db.rawQuery("SELECT id_event, name_event, COUNT(*) AS amount from "
-                + "HistoryVisiting GROUP BY name_event ORDER BY id_event ASC" +  ";", new String[] {});
+        return db.rawQuery("select id_event, name_event, count(*) AS amount " +
+                "from historyvisiting GROUP BY id_event, name_event ORDER BY id_event ASC" +  ";", new String[] {});
     }
 
     public void deleteAllStrings(SQLiteDatabase db) {

@@ -29,6 +29,7 @@ import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig;
 import com.razerdp.widget.animatedpieview.data.SimplePieInfo;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Random;
 
@@ -51,7 +52,6 @@ public class DiagramActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_diagram);
         Bundle arguments = getIntent().getExtras();
-        Log.d("id", String.valueOf(id_U));
         id_U = ((Integer) arguments.get("id"));
         binding();
     }
@@ -110,19 +110,27 @@ public class DiagramActivity extends AppCompatActivity {
         db = dbHelper.getReadableDatabase();
         if(!Utils.hasConnection(DiagramActivity.this)) {
             Cursor cursor = dbHelper.getStatistic(db);
+            Cursor cursor2 = dbHelper.getStatistic(db);
 
             AnimatedPieView animatedPieView = findViewById(R.id.animatedPieView);
             AnimatedPieViewConfig config = new AnimatedPieViewConfig();
             Float angle = -90F;
             config.startAngle(angle).duration(1000).drawText(true).strokeMode(false).textSize(30f);
-//            config.addData(new SimplePieInfo(13, getRandomColor(),
-//                    "cursor.getString(1) "));
+
+            int i = 0;
+            while (cursor2.moveToNext()){
+                i+=cursor2.getColumnIndexOrThrow("amount");
+            }
+            cursor2.close();
+
             while (cursor.moveToNext()){
-                Log.d("TAG1", String.valueOf(cursor.getColumnIndexOrThrow("amount")));
-                Log.d("TAG2", cursor.getString(2));
+                double amount = cursor.getColumnIndexOrThrow("amount");
+                double percent = (amount * 100) / i;
+                String formattedDouble = new DecimalFormat("#0.00").format(percent);
+                String label = cursor.getString(1) + ", " + formattedDouble + "%";
                 config.addData(new SimplePieInfo(cursor.getColumnIndexOrThrow("amount"),
                         getRandomColor(),
-                        cursor.getString(1)));
+                        label));
             }
             cursor.close();
 
@@ -166,10 +174,9 @@ public class DiagramActivity extends AppCompatActivity {
                     }
 
                     List<EventHistory> events = response.body();
-                    Log.d("eve", String.valueOf(events));
 
                     for (EventHistory event : events){
-                        dbHelper.confirmAppAndSend(event.getId_event(),event.getId_user(),event.getId_creator(),event.getName_event(),event.getPlace_event(),
+                        dbHelper.confirmAppAndSend(event.getId(),event.getId_event(),event.getId_user(),event.getId_creator(),event.getName_event(),event.getPlace_event(),
                                 event.getDataAndtime_event(), event.getMaxParticipants_event());
                     }
                 }
@@ -195,10 +202,20 @@ public class DiagramActivity extends AppCompatActivity {
                         return;
                     }
 
+
                     List<EventStatistics> events = response.body();
 
+                    int i = 0;
                     for (EventStatistics event : events){
-                        config.addData(new SimplePieInfo(event.getAmount(), getRandomColor(), event.getName_event()));
+                        i +=event.getAmount();
+                    }
+
+                    for (EventStatistics event : events){
+                        double percent = (event.getAmount().doubleValue() * 100) / i;
+                        String formattedDouble = new DecimalFormat("#0.00").format(percent);
+                        String label = event.getName_event() + ", " + formattedDouble + "%";
+
+                        config.addData(new SimplePieInfo(event.getAmount(), getRandomColor(), label));
                     }
                     animatedPieView.applyConfig(config);
                     animatedPieView.start();

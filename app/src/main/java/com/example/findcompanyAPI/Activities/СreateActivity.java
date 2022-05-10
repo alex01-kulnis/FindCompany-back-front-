@@ -66,7 +66,6 @@ public class СreateActivity extends AppCompatActivity {
 
         Bundle arguments = getIntent().getExtras();
         id_U = ((Integer) arguments.get("id"));
-        Log.d("myId", String.valueOf(id_U));
 
         dbHelper = new DBHelper(getApplicationContext());
         db = dbHelper.getReadableDatabase();

@@ -53,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //configureRetrofif();
-        SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
-        settings.edit().clear().commit();
+//        SharedPreferences settings = getSharedPreferences(appPreferencesName, Context.MODE_PRIVATE);
+//        settings.edit().clear().commit();
 
         login = (EditText) findViewById(R.id.login);
         password = (EditText) findViewById(R.id.password);

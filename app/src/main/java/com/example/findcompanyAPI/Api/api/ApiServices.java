@@ -31,6 +31,9 @@ public interface ApiServices {
     @GET("api/history-visiting-events/statistics")
     Call<List<EventStatistics>> getStatistics();
 
+    @GET("api/history-visiting-events/all-history")
+    Call<List<EventHistory>> getAllHistory();
+
     @GET("api/confirm-visiting-events")
     Call<List<ConfirmVisit>> getConfirmEvents();
 

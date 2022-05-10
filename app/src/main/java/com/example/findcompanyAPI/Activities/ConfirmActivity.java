@@ -147,7 +147,6 @@ public class ConfirmActivity extends AppCompatActivity {
                     );
                     int i = 0;
                     expensesList.add( i,result);
-                    Log.d("id",event.getName_event());
                 }
             }
 
