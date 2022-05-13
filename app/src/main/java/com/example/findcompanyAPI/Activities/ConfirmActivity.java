@@ -148,6 +148,7 @@ public class ConfirmActivity extends AppCompatActivity {
                     int i = 0;
                     expensesList.add( i,result);
                 }
+                customListAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -155,7 +156,6 @@ public class ConfirmActivity extends AppCompatActivity {
                 Log.d("gg","11");
             }
         });
-
     }
 
     @Override
@@ -316,21 +316,18 @@ public class ConfirmActivity extends AppCompatActivity {
                         public void onResponse(Call<ConfirmVisit> call, Response<ConfirmVisit> response) {
                             if(!response.isSuccessful()){
                                 Log.d("Code", String.valueOf(response.code()));
-                                try {
-                                    JSONObject jObjError = new JSONObject(response.errorBody().string());
-                                    String errorMessage = jObjError.getString("message");
-                                    Toast.makeText(ConfirmActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
-                                    return;
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
                             }
-
+                            try {
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
+                                String errorMessage = jObjError.getString("message");
+                                Toast.makeText(ConfirmActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                             recreate();
                         }
-
                         @Override
                         public void onFailure(Call<ConfirmVisit> call, Throwable t) {
                             Log.d("gg","11");
@@ -408,16 +405,8 @@ public class ConfirmActivity extends AppCompatActivity {
                                     e.printStackTrace();
                                 }
                             }
-                            try {
-                                JSONObject jObjError = new JSONObject(response.errorBody().string());
-                                String errorMessage = jObjError.getString("message");
-                                Toast.makeText(ConfirmActivity.this,errorMessage,Toast.LENGTH_SHORT).show();
-                                recreate();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+
+                            recreate();
                         }
 
                         @Override

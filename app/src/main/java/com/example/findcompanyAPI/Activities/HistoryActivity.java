@@ -197,7 +197,6 @@ public class HistoryActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<EventHistory>> call, Throwable t) {
                 Log.d("gg","11");
-                customListAdapter.notifyDataSetChanged();
             }
         });
     }

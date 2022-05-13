@@ -160,7 +160,7 @@ public class HomeActivity extends AppCompatActivity {
                         Log.d("gg","11");
                     }
                 });
-
+                customListAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -275,6 +275,7 @@ public class HomeActivity extends AppCompatActivity {
                     int i = 0;
                     expensesList.add( i,result);
                 }
+                customListAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -282,7 +283,6 @@ public class HomeActivity extends AppCompatActivity {
                 Log.d("gg","11");
             }
         });
-
         customListAdapter.notifyDataSetChanged();
     }
 
